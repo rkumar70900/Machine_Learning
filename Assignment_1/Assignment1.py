@@ -13,43 +13,43 @@ import seaborn as sns
 from numpy import linalg as LA
 from sklearn.neighbors import KNeighborsClassifier as kNN
 
-
-
-
 file = "C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Learning\\Assignment 1\\NormalSample.csv"
 file2 = "C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Learning\\Assignment 1\\Fraud.csv"
 #CSV to DataFrame
 NormalSample_df = pd.read_csv(file,sep=',')
 Fraud_df = pd.read_csv(file2,sep=',')
 x=NormalSample_df.iloc[:,2]
-print(x)
 #Total number of elements in the column 'x'
 N = x.count()
 lis = x.values.tolist()
 lis.sort()
-print(lis)
 #Median and Median Location
 med=st.median(lis)
 medloc = lis.index(med)
 leftlis = lis[0:medloc]
 rightlis = lis[medloc+1:]
+#quartile 1 and quartile 3 values
 quartile1 = st.median(leftlis)
 quartile3 = st.median(rightlis)
-print(quartile1,quartile3)
 #Calculating the IQR Value
 IQR = quartile3-quartile1
-print(IQR)
 bw = 2*IQR*(N**(-1/3))
 #Question 1.a
+print("----------------------------------------------")
 print("---------------------question 1.a-------------")
+print("----------------------------------------------")
 binwidth = np.round(bw,2)
 print("Binwidth: ",binwidth)
 #question 1.b
+print("---------------------------------------")
 print("-----------question 1.b----------------")
+print("---------------------------------------")
 print("Minimum Value: ",min(x))
 print("Maximum Value: ",max(x))
 #question 1.c
+print("-------------------------------------------")
 print("-----------------question 1.c--------------")
+print("-------------------------------------------")
 a = np.floor(min(x))
 b = np.ceil(max(x))
 print("a: ",a)
@@ -68,48 +68,56 @@ def hist_den_est(h):
         else:
             mid.append(mid[-1]+h)
     return p[:-1],mid[:-1]
+print("-----------------------------------")
 print("-----------question 1.d------------")
-print("-----------density estimates,midpoint values------------")
+print("-----------------------------------")
+print("-density estimates,midpoint values-")
 den_val,mid_val = hist_den_est(0.25)
 dm = zip(den_val,mid_val)
 print(list(dm))
-#number of bins bin size = 0.25
+#number of bins bin width = 0.25
 nobin_1d = int((b-a)/0.25)
 plt.figure(figsize=(15,15))
-plt.hist(x,bins=nobin_1d)
+sns.distplot(x,kde=False,bins=nobin_1d)
 plt.show()
 #question 1.e
+print("--------------------------------------")
 print("------------question 1.e--------------")
-print("-----------density estimates,midpoint values------------")
+print("--------------------------------------")
+print("--density estimates,midpoint values---")
 den_val,mid_val = hist_den_est(0.5)
 dm=zip(den_val,mid_val)
 print(list(dm))
-#number of bins bin size = 0.5
+#number of bins bin width = 0.5
 nobin_1e = int((b-a)/0.5)
-plt.figure()
-plt.hist(x,bins=nobin_1e)
+plt.figure(figsize=(15,15))
+sns.distplot(x,kde=False,bins=nobin_1e)
 plt.show()
 #question 1.f
+print("---------------------------------------")
 print("----------question 1.f-----------------")
-print("-----------density estimates,midpoint values------------")
+print("---------------------------------------")
+print("--density estimates,midpoint values----")
 den_val,mid_val = hist_den_est(1)
 dm=zip(den_val,mid_val)
 print(list(dm))
-#number of bins bin size = 1
+#number of bins bin width = 1
 nobin_1f = int((b-a)/1)
-plt.figure()
-plt.hist(x,bins=nobin_1f)
+plt.figure(figsize=(15,15))
+sns.distplot(x,kde=False,bins=nobin_1f)
 plt.show()
 #question 1.g
+print("-------------------------------------")
 print("----------question 1.g---------------")
-print("-----------density estimates,midpoint values------------")
+print("-------------------------------------")
+print("--density estimates,midpoint values--")
 den_val,mid_val = hist_den_est(2)
 dm=zip(den_val,mid_val)
 print(list(dm))
-#number of bins bin size = 2
+#number of bins bin width = 2
 nobin_1g= int((b-a)/2)
-plt.figure()
-plt.hist(x,bins=nobin_1g)
+plt.figure(figsize=(15,15))
+sns.distplot(x,kde=False,bins=nobin_1g)
 plt.show()
 
 #Five number summary and IQR Whiskers
@@ -125,14 +133,16 @@ def IQR_Whiskers(g):
     return low_whisker,up_whisker
 
 #question 2.a
+print("-------------------------------------------------")
 print("---------------------question 2.a----------------")
+print("-------------------------------------------------")
 print("Five Number Summary")
 print(dict(list(zip(['Median','Q1','Q3','Minimum','Maximum'],Five_Number_Summary(x)))))
 print(Five_Number_Summary(x))
 print("IQR Whiskers")
 print(dict(list(zip(['Lower Whisker','Upper Whisker'],IQR_Whiskers(x)))))
 
-#Grouping Data
+#Grouping Data into 0 and 1
 def grouping(d,group):
     global group_0_data
     group_0_data = []
@@ -147,7 +157,9 @@ def grouping(d,group):
         i+=1
     return pd.Series(group_0_data).describe(),pd.Series(group_1_data).describe()
 #question 2.b
+print("--------------------------------------")
 print("----------------question 2.b----------")
+print("--------------------------------------")
 print(grouping(NormalSample_df,NormalSample_df['group']))
 #1.5 IQR Whiskers
 print("Group 0 Whiskers") 
@@ -155,16 +167,22 @@ print(dict(list(zip(['Lower Whisker','Upper Whisker'],IQR_Whiskers(group_0_data)
 print("group 1 Whiskers")
 print(dict(list(zip(['Lower Whisker','Upper Whisker'],IQR_Whiskers(group_1_data)))))
 
-#question 3.c
+#question 2.c
+print("-----------------------------------")
 print("------------question 2.c-----------")
+print("-----------------------------------")
 plt.figure(figsize=[15,15])
-x_box = NormalSample_df.boxplot(column=['x'])
+sns.boxplot(data=x)
+plt.show()
 
-#question 3.d
+#question 2.d
+print("--------------------------------------------")
 print("-----------------question 2.d---------------")
+print("--------------------------------------------")
 group_data = pd.DataFrame(list(zip(group_0_data,group_1_data)),columns=['Group_0','Group_1'])
 plt.figure(figsize=[15,15])
-x_group_box = group_data.boxplot(column=['Group_0','Group_1'])
+sns.boxplot(data=group_data)
+plt.show()
 #function outliers
 def outliers(data):
     i=0
@@ -175,12 +193,14 @@ def outliers(data):
         i+=1
     return outlie
 #outliers
-print(outliers(x))
-print(outliers(group_0_data))
-print(outliers(group_1_data))
+print("Outliers of Data: ",outliers(x))
+print("Outliers of Group 0(Zero): ",outliers(group_0_data))
+print("Outliers of Group 1(One): ",outliers(group_1_data))
             
 #question 3.a
+print("----------------------------------------")
 print("---------------question 3.a-------------")
+print("----------------------------------------")
 fraud = Fraud_df.loc[:,'FRAUD']
 count = fraud.value_counts()
 per_fraud = fraud.value_counts(normalize=True).mul(100).round(4).astype(str)+'%'
@@ -189,7 +209,9 @@ print("Percentage of Fraud investigations "+percent.iloc[1,1])
 
 int_var = Fraud_df.drop(['FRAUD'],axis=1).columns
 #question 3.b
+print("------------------------------------")
 print("-----------question 3.b-------------")
+print("------------------------------------")
 def interval_variables(f):
     for r in list(f):
         plt.figure(figsize=(15,15))
@@ -202,16 +224,15 @@ interval_variables(int_var)
 #Using First Principle
 ortho_mat = Fraud_df.drop(['FRAUD','CASE_ID'],axis=1)
 int_var_mat = np.matrix(ortho_mat.values)
+print("-----------------------------------------------------------")
+print("---------------------------question 3.c.i------------------")
+print("-----------------------------------------------------------")
+print("Number of Dimensions used: {} ".format(len(ortho_mat.columns)))
 print("Input Matix \n",int_var_mat)
-
 print("Number of Dimensions:",int_var_mat.ndim)
-
 print("Number of Rows: ", np.size(int_var_mat,0))
 print("Number of Columns: ", np.size(int_var_mat,1))
-
 int_var_trans = int_var_mat.transpose()*int_var_mat
-
-
 evals,evecs = LA.eigh(int_var_trans)
 print("Eigen Values: ",evals)
 print("\nEigen Vectors: ",evecs)
@@ -219,7 +240,9 @@ transf = evecs * LA.inv(np.sqrt(np.diagflat(evals)))
 print("Transformation Matrix: \n",transf)
 transf_x = int_var_mat * transf
 print("The Transformed Matrix: \n",transf_x)
+print("----------------------------------------------------")
 print("----------------------question 3.c.ii---------------")
+print("----------------------------------------------------")
 xtx = transf_x.transpose().dot(transf_x)
 print("An Identity Matrix: \n",xtx)
 
@@ -229,9 +252,6 @@ orthx = LA2.orth(int_var_mat)
 print("The Orthonormalize of int_var_mat: ",orthx)
 check = orthx.transpose().dot(orthx)
 print("Identity Matrix: \n",check)
-print("---------------------------question 3.c.i------------------")
-print("Number of Dimensions: {} ".format(len(ortho_mat.columns)))
-print("----------------question 3.c.ii------------------")
 print("The Transformed Matrix: \n",orthx)
 print("Variables are orthonormal: \n",check)
 
@@ -241,27 +261,49 @@ kNNSpec = kNN(n_neighbors = 5, algorithm = 'brute', metric = 'euclidean')
 y=np.array(Fraud_df.loc[:,'FRAUD'])
 fit_=kNNSpec.fit(int_var_mat,y)
 tar_var_pred = fit_.predict(int_var_mat)
+print("--------------------------------------")
 print("------------question 3.d.i------------") 
+print("--------------------------------------")
 print("Score: ",fit_.score(int_var_mat,y))
-nbrs_un = kNNSpec.fit(transf_x)
+nbrs_un = kNNSpec.fit(transf_x,y)
 
 #question 3.e
 focal = np.array([7500,15,3,127,2,2])
 transf_focal = focal*transf
 neighbours = nbrs_un.kneighbors(transf_focal,return_distance=False)
-print("Neighbours of the data: \n",neighbours)
-
-#question 3.f
-neigh = kNN(n_neighbors=5 , algorithm = 'brute', metric = 'euclidean')
-nbrs_sp = neigh.fit(int_var_mat, y)
-class_prob = nbrs_sp.predict_proba(int_var_mat)
-print("Predicting Probabilites on Traininig data:",class_prob)
-class_result = nbrs_sp.predict(transf_focal)
-prob = nbrs_sp.predict_proba(transf_focal)
+class_result = fit_.predict(transf_focal)
+print("-----------------------------------------")
+print("---------------question 3.e--------------")
+print("-----------------------------------------")
+print(ortho_mat.columns)
+print("Neighbours of the data: ",neighbours)
+print("Neighbours input Variables: \n")
+for i in neighbours:
+    print(ortho_mat.iloc[i,:])
 print("Predicted Target Class:",class_result)
+#question 3.f
+print("-----------------------------------------")
+print("--------------question 3.f---------------")
+print("-----------------------------------------")
+class_prob = fit_.predict_proba(int_var_mat)
+print("Predicting Probabilites on Traininig data:",class_prob)
+prob = fit_.predict_proba(transf_focal)
 print("Predicted Probabilites: ",prob)
-accuracy = nbrs_sp.score(int_var_mat, y)
-print('The score for our KNN neighbours model is: ',accuracy)
+
+
+#targetClass = [0,1]
+#prob2 = fit_.predict_proba(int_var_mat)
+#print(prob2)
+#target = Fraud_df['FRAUD']
+#nMissClass = 0
+#for i in range(len(Fraud_df)):
+#    j = np.argmax(prob[i][:])
+#    predictClass = targetClass[j]
+#    if (predictClass != target.iloc[i]):
+#        nMissClass += 1
+#print(nMissClass)
+#rateMissClass = nMissClass /len(Fraud_df)
+#print('Misclassification Rate = ', rateMissClass)
 
 
 
