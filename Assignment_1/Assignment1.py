@@ -18,7 +18,8 @@ file2 = "C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Lea
 #CSV to DataFrame
 NormalSample_df = pd.read_csv(file,sep=',')
 Fraud_df = pd.read_csv(file2,sep=',')
-x=NormalSample_df.iloc[:,2]
+x=NormalSample_df['x']
+print(x)
 #Total number of elements in the column 'x'
 N = x.count()
 lis = x.values.tolist()
@@ -45,13 +46,13 @@ print("---------------------------------------")
 print("-----------question 1.b----------------")
 print("---------------------------------------")
 print("Minimum Value: ",min(x))
-print("Maximum Value: ",max(x))
+print("Maximum Value: ",NormalSample_df['x'].max())
 #question 1.c
 print("-------------------------------------------")
 print("-----------------question 1.c--------------")
 print("-------------------------------------------")
 a = np.floor(min(x))
-b = np.ceil(max(x))
+b = np.ceil(x.max())
 print("a: ",a)
 print("b: ",b)
 #question 1.d
@@ -124,7 +125,7 @@ plt.show()
 def Five_Number_Summary(f):
     Q1,Median,Q3 = np.percentile(f,[25,50,75])
     minimum = min(x)
-    maximum = max(x)
+    maximum = x.max()
     return Median,Q1,Q3,minimum,maximum
 def IQR_Whiskers(g):
     Median,Q1,Q3,Minimum,Maximum = Five_Number_Summary(g)
