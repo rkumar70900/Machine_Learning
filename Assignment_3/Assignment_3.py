@@ -50,9 +50,10 @@ prob_train=a.loc[['Commercial'],['Count']]/(a.loc[['Commercial'],['Count']]+b.lo
 prob_test = b.loc[['Private'],['Count']]/(b.loc[['Private'],['Count']]+a.loc[['Private'],['Count']])
 
 print('*'*50)
-
+data2 = x_train
+data2['CAR_USE'] = y_train['CAR_USE']
 #Contingency Table
-cont_tab=pd.crosstab(data['CAR_TYPE'],data['CAR_USE'])
+cont_tab=pd.crosstab(data2['CAR_TYPE'],data2['CAR_USE'])
 cont_tab['Total'] = cont_tab['Commercial'] + cont_tab['Private']
 cont_tab = cont_tab.append(cont_tab.agg(['sum']))
 #entropy calcualtion
@@ -119,7 +120,7 @@ for k in range(15):
     
 for l in range(10):
     re_33 = ent-red_entropy(com_list[2][l],pri_list[2][-(l+1)])[2]
-    df = df.append({'Commercial':com_list[2][l],'Private':pri_list[2][-(l+1)],'Red_entropy':re_33},ignore_index=True)
+    df = df.append({'Private':com_list[2][l],'Commercial':pri_list[2][-(l+1)],'Red_entropy':re_33},ignore_index=True)
 
 #2.b split criterion of first layer is maximum reduction in entropy
 sc = df.loc[df['Red_entropy'] == float(df.loc[:,'Red_entropy'].max()),['Commercial','Private']]
@@ -128,9 +129,9 @@ sc = df.loc[df['Red_entropy'] == float(df.loc[:,'Red_entropy'].max()),['Commerci
 se = float(df.loc[:,'Red_entropy'].max())
 
 #child node 1
-com_split_1 = data[data['CAR_TYPE'].isin(['Panel Truck', 'Pickup','Van'])].reset_index().drop(['index'],axis=1)
+com_split_1 = data2[data2['CAR_TYPE'].isin(['Panel Truck', 'Pickup','Van'])].reset_index().drop(['index'],axis=1)
 #child node 2
-pri_split_2 = data[data['CAR_TYPE'].isin(['Minivan', 'SUV','Sports Car'])].reset_index().drop(['index'],axis=1)
+pri_split_2 = data2[data2['CAR_TYPE'].isin(['Minivan', 'SUV','Sports Car'])].reset_index().drop(['index'],axis=1)
 
 #splitting child node 1
 cont_tab2=pd.crosstab(com_split_1['OCCUPATION'],com_split_1['CAR_USE'])
@@ -322,8 +323,53 @@ df_l2 = pd.DataFrame(leaf_node_2)
 df_l3 = pd.DataFrame(leaf_node_3)
 df_l4 = pd.DataFrame(leaf_node_4)
 
+des_rule = []
 
 
+
+n_obs = []
+
+n_obs.append(len(com_split_3))
+n_obs.append(len(pri_split_4))
+n_obs.append(len(com_split_5))
+n_obs.append(len(pri_split_6))
+
+com_obs = []
+
+com_obs.append((round((l1_counts['Commercial']/n_obs[0])*100)))
+com_obs.append((round((l2_counts['Commercial']/n_obs[1])*100)))
+com_obs.append((round((l3_counts['Commercial']/n_obs[2])*100)))
+com_obs.append((round((l4_counts['Commercial']/n_obs[3])*100)))
+
+pred_class = []
+
+for i in range(len(com_obs)):
+    if(com_obs[i]>50.0):
+        pred_class.append('Commercial')
+    else:
+        pred_class.append('Private')
+        
+com_split_3['Predicted_Class'] = pred_class[0]
+pri_split_4['Predicted_class'] = pred_class[1]
+com_split_5['Predicted_Class'] = pred_class[2]
+pri_split_6['Predicted_Class'] = pred_class[3]
+
+
+pd.DataFrame([[n_obs,com_obs,pred_class]],columns=['Number of Observations','Commercial','Predicted Class'])
+
+
+from sklearn.metrics import confusion_matrix
+confusion_matrix = confusion_matrix(com_split_3['CAR_USE'],com_split_3['Predicted_Class'])
+
+
+def predict_cat(data):
+    if data['CAR_TYPE'] in list(sc['Commercial']):
+        return 0
+    
+
+
+if data['CAR_TYPE'] in sc['Commercial'].item():
+    print('in')
 
 
 
