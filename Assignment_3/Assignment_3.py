@@ -7,8 +7,11 @@ Created on Mon Feb 24 13:19:40 2020
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+from itertools import combinations
+import scipy
+
 #from statsmodels.graphics.mosaicplot import mosaic
 
 claim_history = pd.read_csv("C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Learning\\Machine_Learning\\Assignment_3\\claim_history.csv")
@@ -18,53 +21,47 @@ data = claim_history[['CAR_TYPE','OCCUPATION','EDUCATION','CAR_USE']]
 x = data[['CAR_TYPE','OCCUPATION','EDUCATION']].dropna()
 y = data[['CAR_USE']].dropna()
 
-iter_split = StratifiedShuffleSplit(n_splits = 5,test_size = 0.25,train_size = 0.75,random_state = 60616)
+x_train, x_test, y_train, y_test = train_test_split(x,y,test_size = 0.25,train_size = 0.75,random_state = 60616,stratify=y)
 
-iter_split.get_n_splits(x,y)
-
-for train_index, test_index in iter_split.split(x,y):
-    x_train, x_test = x.iloc[train_index], x.iloc[test_index]
-    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
     
 my_tab = pd.crosstab(index=y_train['CAR_USE'],columns='count')
 my_tab.columns=['Count']
 my_tab.index = ['Private','Commercial']
 my_tab['Proportion'] = my_tab['Count']/my_tab['Count'].sum()
-my_tab['count'] = y_train['CAR_USE'].value_counts().index
+#my_tab['count'] = y_train['CAR_USE'].value_counts().index
 
 #1.aTrain data frequency counts and proportion
 train_count = list(y_train['CAR_USE'].value_counts())
 labels = list(y['CAR_USE'].value_counts().index)
-train_freq_table = pd.DataFrame(list(zip(labels,train_count)),columns=['Use','Count'])
+train_freq_table = pd.DataFrame(list(zip(labels,train_count)),columns=['Car_Use','Count'])
 train_freq_table['Proportion'] = list(train_freq_table['Count']/train_freq_table['Count'].sum())
 
 #1.bTest data frequency counts and proportion
 test_count = list(y_test['CAR_USE'].value_counts())
-test_freq_table = pd.DataFrame(list(zip(labels,test_count)),columns=['Use','Count'])
+test_freq_table = pd.DataFrame(list(zip(labels,test_count)),columns=['Car_Use','Count'])
 test_freq_table['Proportion'] = list(test_freq_table['Count']/test_freq_table['Count'].sum())
 
 #1.cProbability train
-a=train_freq_table.set_index('Use')
-b=test_freq_table.set_index('Use')
+a=train_freq_table.set_index('Car_Use')
+b=test_freq_table.set_index('Car_Use')
 prob_train=a.loc[['Commercial'],['Count']]/(a.loc[['Commercial'],['Count']]+b.loc[['Commercial'],['Count']])
 
 #1.d Probability test
 prob_test = b.loc[['Private'],['Count']]/(b.loc[['Private'],['Count']]+a.loc[['Private'],['Count']])
 
-
+print('*'*50)
 
 #Contingency Table
 cont_tab=pd.crosstab(data['CAR_TYPE'],data['CAR_USE'])
 cont_tab['Total'] = cont_tab['Commercial'] + cont_tab['Private']
 cont_tab = cont_tab.append(cont_tab.agg(['sum']))
 #entropy calcualtion
-import scipy
+
 c=cont_tab.loc[['sum'],['Commercial']]
 t=cont_tab.loc[['sum'],['Total']]
 p=cont_tab.loc[['sum'],['Private']]
 #2.a Entropy of root node
 ent = scipy.stats.entropy([c.Commercial/t.Total,p.Private/t.Total], base=2)
-
 
 #2.b
 index = ['Commercial','Private','Total']
@@ -91,28 +88,11 @@ def red_entropy(c,p):
     ent1 = scipy.stats.entropy([a/d,b/d],base=2)
     ent2 = scipy.stats.entropy([e/g,f/g],base=2)
     split_ent = ((d/st)*ent1+(g/st)*ent2)
-    return ent-split_ent
+    values = [ent1,ent2,split_ent]
+    return values
 
-
-red_entropy(['Van','Panel Truck','Pickup'],['Minivan','SUV','Sports Car'])   
-
-
-#commercial = [['Panel Truck'],['Minivan','Panel Truck'],['Minivan','SUV','Sports Car'],['Minivan','Panel Truck','Pickup','SUV'],['Minivan','Panel Truck','Pickup','SUV']]
-#private = 
-
-from itertools import combinations
-
+#Splitting parent node 
 comm = ['Minivan','Panel Truck','Pickup','SUV','Sports Car','Van']
-#priv = ['Minivan','Panel Truck','Pickup','SUV','Sports Car','Van']
-
-#comm = ['Low','Medium','High']
-#priv = ['Low','Medium','High']
-#list1_permutations = permutations(comm,1)
-
-all_combinations = []
-for comb in combinations(comm,4):
-    all_combinations.append(comb)
-    
 
 def combinations_(u,i):
     c =[]
@@ -120,20 +100,227 @@ def combinations_(u,i):
         c.append(comb)
     return c
     
-
 com_list=[]
 pri_list=[]
 tot=6
 for i in range(1,4,1):
     com_list.append(combinations_(comm,i))
     pri_list.append(combinations_(comm,tot-i))
+        
+df = pd.DataFrame(columns=['Commercial','Private','Red_entropy'])
 
+for j in range(6):
+    re_15 = ent-red_entropy(com_list[0][j],pri_list[0][-(j+1)])[2]
+    df = df.append({'Commercial':com_list[0][j],'Private':pri_list[0][-(j+1)],'Red_entropy':re_15},ignore_index=True)
 
+for k in range(15):
+    re_24 = ent-red_entropy(com_list[1][k],pri_list[1][-(k+1)])[2]
+    df = df.append({'Commercial':com_list[1][k],'Private':pri_list[1][-(k+1)],'Red_entropy':re_24},ignore_index=True)
     
+for l in range(10):
+    re_33 = ent-red_entropy(com_list[2][l],pri_list[2][-(l+1)])[2]
+    df = df.append({'Commercial':com_list[2][l],'Private':pri_list[2][-(l+1)],'Red_entropy':re_33},ignore_index=True)
+
+#2.b split criterion of first layer is maximum reduction in entropy
+sc = df.loc[df['Red_entropy'] == float(df.loc[:,'Red_entropy'].max()),['Commercial','Private']]
+
+#2.c entropy of split of first layer
+se = float(df.loc[:,'Red_entropy'].max())
+
+#child node 1
+com_split_1 = data[data['CAR_TYPE'].isin(['Panel Truck', 'Pickup','Van'])].reset_index().drop(['index'],axis=1)
+#child node 2
+pri_split_2 = data[data['CAR_TYPE'].isin(['Minivan', 'SUV','Sports Car'])].reset_index().drop(['index'],axis=1)
+
+#splitting child node 1
+cont_tab2=pd.crosstab(com_split_1['OCCUPATION'],com_split_1['CAR_USE'])
+cont_tab2['Total'] = cont_tab2['Commercial'] + cont_tab2['Private']
+cont_tab2 = cont_tab2.append(cont_tab2.agg(['sum']))
+c1=cont_tab2.loc[['sum'],['Commercial']]
+t1=cont_tab2.loc[['sum'],['Total']]
+p1=cont_tab2.loc[['sum'],['Private']]
+
+ent_c1 = scipy.stats.entropy([c1.Commercial/t1.Total,p1.Private/t1.Total], base=2)
+
+def red_entropy_c1(c,p):
+    co = []
+    pr = []
+    for x in c:
+        co.append(x)
+    for y in p:
+        pr.append(y)
+    com = cont_tab2.loc[co].sum()
+    pri = cont_tab2.loc[pr].sum() 
+    cont_tab1 = pd.DataFrame(list(zip(com,pri)),columns=[" ".join(co)," ".join(pr)])
+    cont_tab1.index = [x for x in index]
+    cont_tab1 = cont_tab1.T
+    cont_tab1 = cont_tab1.append(cont_tab1.agg(['sum']))
+    a = cont_tab1.loc[" ".join(co),index[0]]
+    b = cont_tab1.loc[" ".join(co),index[1]]
+    d = cont_tab1.loc[" ".join(co),index[2]]
+    e = cont_tab1.loc[" ".join(pr),index[0]]
+    f = cont_tab1.loc[" ".join(pr),index[1]]
+    g = cont_tab1.loc[" ".join(pr),index[2]]
+    st = cont_tab1.loc['sum',index[2]]
+    ent1 = scipy.stats.entropy([a/d,b/d],base=2)
+    ent2 = scipy.stats.entropy([e/g,f/g],base=2)
+    split_ent = ((d/st)*ent1+(g/st)*ent2)
+    values = [ent1,ent2,split_ent]
+    return values
+
+s1_c1 = ['Blue Collar','Clerical','Doctor','Home Maker','Lawyer','Manager','Professional','Student','Unknown']
+
+c1_list = []
+p1_list = []
+tot = 9
+for i in range(1,5,1):
+    c1_list.append(combinations_(s1_c1,i))
+    p1_list.append(combinations_(s1_c1,tot-i))
+
+df2 = pd.DataFrame(columns=['Commercial','Private','Red_entropy'])
+
+for x in range(9):
+    re_18 = ent_c1-red_entropy_c1(c1_list[0][x],p1_list[0][-(x+1)])[2]
+    df2 = df2.append({'Commercial':c1_list[0][x],'Private':p1_list[0][-(x+1)],'Red_entropy':re_18},ignore_index=True)
+
+for y in range(36):
+    re_27 = ent_c1-red_entropy_c1(c1_list[1][y],p1_list[1][-(y+1)])[2]
+    df2 = df2.append({'Commercial':c1_list[1][y],'Private':p1_list[1][-(y+1)],'Red_entropy':re_27},ignore_index=True)
+    
+for z in range(84):
+    re_36 = ent_c1-red_entropy_c1(c1_list[2][z],p1_list[2][-(z+1)])[2]
+    df2 = df2.append({'Commercial':c1_list[2][z],'Private':p1_list[2][-(z+1)],'Red_entropy':re_36},ignore_index=True)
+
+for w in range(126):
+    re_45 = ent_c1-red_entropy_c1(c1_list[3][w],p1_list[3][-(w+1)])[2]
+    df2 = df2.append({'Commercial':c1_list[3][w],'Private':p1_list[3][-(w+1)],'Red_entropy':re_45},ignore_index=True)
+
+# split criterion of child node 1 maximum reduction in entropy
+c1_c = df2.loc[df2['Red_entropy'] == float(df2.loc[:,'Red_entropy'].max()),['Commercial','Private']]
+
+#maximum entropy 
+c1_e = float(df2.loc[:,'Red_entropy'].max())
+#leaf node 1
+com_split_3 = com_split_1[com_split_1['OCCUPATION'].isin(['Blue Collar','Student'])].reset_index().drop(['index'],axis=1)
+
+#entropy of leaf node 1
+cont_tab4=pd.crosstab(com_split_3['OCCUPATION'],com_split_3['CAR_USE'])
+cont_tab4['Total'] = cont_tab4['Commercial'] + cont_tab4['Private']
+cont_tab4 = cont_tab4.append(cont_tab4.agg(['sum']))
+c3=cont_tab4.loc[['sum'],['Commercial']]
+t3=cont_tab4.loc[['sum'],['Total']]
+p3=cont_tab4.loc[['sum'],['Private']]
+ent_c3 = scipy.stats.entropy([c3.Commercial/t3.Total,p3.Private/t3.Total], base=2)
+
+#leaf node 2
+pri_split_4 = com_split_1[com_split_1['OCCUPATION'].isin(['Clerical','Doctor','Home Maker','Lawyer','Manager','Professional','Unknown'])].reset_index().drop(['index'],axis=1)
+#entropy of leaf node 2
+cont_tab5=pd.crosstab(pri_split_4['OCCUPATION'],pri_split_4['CAR_USE'])
+cont_tab5['Total'] = cont_tab5['Commercial'] + cont_tab5['Private']
+cont_tab5 = cont_tab5.append(cont_tab5.agg(['sum']))
+c4=cont_tab5.loc[['sum'],['Commercial']]
+t4=cont_tab5.loc[['sum'],['Total']]
+p4=cont_tab5.loc[['sum'],['Private']]
+ent_c4 = scipy.stats.entropy([c4.Commercial/t4.Total,p4.Private/t4.Total], base=2)
+
+#splitting child node 2
+cont_tab3=pd.crosstab(pri_split_2['EDUCATION'],pri_split_2['CAR_USE'])
+cont_tab3['Total'] = cont_tab3['Commercial'] + cont_tab3['Private']
+cont_tab3 = cont_tab3.append(cont_tab3.agg(['sum']))
+
+c2=cont_tab3.loc[['sum'],['Commercial']]
+t2=cont_tab3.loc[['sum'],['Total']]
+p2=cont_tab3.loc[['sum'],['Private']]
+
+ent_c2 = scipy.stats.entropy([c2.Commercial/t2.Total,p2.Private/t2.Total], base=2)
+
+def red_entropy_c2(c,p):
+    co = []
+    pr = []
+    for x in c:
+        co.append(x)
+    for y in p:
+        pr.append(y)
+    com = cont_tab3.loc[co].sum()
+    pri = cont_tab3.loc[pr].sum() 
+    cont_tab1 = pd.DataFrame(list(zip(com,pri)),columns=[" ".join(co)," ".join(pr)])
+    cont_tab1.index = [x for x in index]
+    cont_tab1 = cont_tab1.T
+    cont_tab1 = cont_tab1.append(cont_tab1.agg(['sum']))
+    a = cont_tab1.loc[" ".join(co),index[0]]
+    b = cont_tab1.loc[" ".join(co),index[1]]
+    d = cont_tab1.loc[" ".join(co),index[2]]
+    e = cont_tab1.loc[" ".join(pr),index[0]]
+    f = cont_tab1.loc[" ".join(pr),index[1]]
+    g = cont_tab1.loc[" ".join(pr),index[2]]
+    st = cont_tab1.loc['sum',index[2]]
+    ent1 = scipy.stats.entropy([a/d,b/d],base=2)
+    ent2 = scipy.stats.entropy([e/g,f/g],base=2)
+    split_ent = ((d/st)*ent1+(g/st)*ent2)
+    values = [ent1,ent2,split_ent]
+    return values
+
+s1_c2 = ['Below High School' , 'High School' , 'Bachelors' , 'Masters' , 'Doctors']
+
+c2_list = []
+p2_list = []
+tot = 5
+for i in range(1,3,1):
+    c2_list.append(combinations_(s1_c2,i))
+    p2_list.append(combinations_(s1_c2,tot-i))
+
+df3 = pd.DataFrame(columns=['Commercial','Private','Red_entropy'])
+
+for x in range(5):
+    re_14 = ent_c2-red_entropy_c2(c2_list[0][x],p2_list[0][-(x+1)])[2]
+    df3 = df3.append({'Commercial':c2_list[0][x],'Private':p2_list[0][-(x+1)],'Red_entropy':re_14},ignore_index=True)
+
+for y in range(10):
+    re_23 = ent_c2-red_entropy_c2(c2_list[1][y],p2_list[1][-(y+1)])[2]
+    df3 = df3.append({'Commercial':c2_list[1][y],'Private':p2_list[1][-(y+1)],'Red_entropy':re_23},ignore_index=True)
+    
+# split criterion of child node 2 maximum reduction in entropy
+c2_c = df3.loc[df3['Red_entropy'] == float(df3.loc[:,'Red_entropy'].max()),['Commercial','Private']]
+
+#maximum reduction entropy 
+c2_e = float(df3.loc[:,'Red_entropy'].max())
+#leaf node 3
+com_split_5 = pri_split_2[pri_split_2['EDUCATION'].isin(['Masters'])].reset_index().drop(['index'],axis=1)
+#entropy of leaf node 3
+cont_tab6=pd.crosstab(com_split_5['EDUCATION'],com_split_5['CAR_USE'])
+cont_tab6['Total'] = cont_tab6['Commercial'] + cont_tab6['Private']
+cont_tab6 = cont_tab6.append(cont_tab6.agg(['sum']))
+c5=cont_tab6.loc[['sum'],['Commercial']]
+t5=cont_tab6.loc[['sum'],['Total']]
+p5=cont_tab6.loc[['sum'],['Private']]
+ent_c5 = scipy.stats.entropy([c5.Commercial/t5.Total,p5.Private/t5.Total], base=2)
+#leaf node 4
+pri_split_6 = pri_split_2[pri_split_2['EDUCATION'].isin(['Below High School' , 'High School' , 'Bachelors' ,'Doctors'])].reset_index().drop(['index'],axis=1)
+#entropy of leaf node 4
+cont_tab7=pd.crosstab(pri_split_6['OCCUPATION'],pri_split_6['CAR_USE'])
+cont_tab7['Total'] = cont_tab7['Commercial'] + cont_tab7['Private']
+cont_tab7 = cont_tab7.append(cont_tab7.agg(['sum']))
+c6=cont_tab7.loc[['sum'],['Commercial']]
+t6=cont_tab7.loc[['sum'],['Total']]
+p6=cont_tab7.loc[['sum'],['Private']]
+ent_c6 = scipy.stats.entropy([c6.Commercial/t6.Total,p6.Private/t6.Total], base=2)
 
 
+l1_counts=com_split_3['CAR_USE'].value_counts()
+l2_counts=pri_split_4['CAR_USE'].value_counts()
+l3_counts=com_split_5['CAR_USE'].value_counts()
+l4_counts=pri_split_6['CAR_USE'].value_counts()
 
+leaf_node_1 = {'Decision Rule':{'Occupation':list(c1_c['Commercial']),'Car_Type':list(sc['Commercial'])},'Commercial':l1_counts['Commercial'],'Private':l1_counts['Private']}
+leaf_node_2 = {'Decision Rule':{'Occupation':list(c1_c['Private']),'Car_Type':list(sc['Commercial'])},'Commercial':l2_counts['Commercial'],'Private':l2_counts['Private']}
+leaf_node_3 = {'Decision Rule':{'Education':list(c2_c['Commercial']),'Car_Type':list(sc['Private'])},'Commercial':l3_counts['Commercial'],'Private':l3_counts['Private']}
+leaf_node_4 = {'Decision Rule':{'Education':list(c2_c['Private']),'Car_Type':list(sc['Private'])},'Commercial':l4_counts['Commercial'],'Private':l4_counts['Private']}
 
+#
+df_l1 = pd.DataFrame(leaf_node_1)
+df_l2 = pd.DataFrame(leaf_node_2)
+df_l3 = pd.DataFrame(leaf_node_3)
+df_l4 = pd.DataFrame(leaf_node_4)
 
 
 
