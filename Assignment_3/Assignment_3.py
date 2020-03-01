@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from itertools import combinations
 import scipy
+import sklearn.metrics as metrics
 
 #from statsmodels.graphics.mosaicplot import mosaic
 
@@ -35,35 +36,52 @@ train_count = list(y_train['CAR_USE'].value_counts())
 labels = list(y['CAR_USE'].value_counts().index)
 train_freq_table = pd.DataFrame(list(zip(labels,train_count)),columns=['Car_Use','Count'])
 train_freq_table['Proportion'] = list(train_freq_table['Count']/train_freq_table['Count'].sum())
+a=train_freq_table.set_index('Car_Use')
+print("-"*50)
+print("Question 1.a")
+print("-"*50)
+print(a)
 
 #1.bTest data frequency counts and proportion
 test_count = list(y_test['CAR_USE'].value_counts())
 test_freq_table = pd.DataFrame(list(zip(labels,test_count)),columns=['Car_Use','Count'])
 test_freq_table['Proportion'] = list(test_freq_table['Count']/test_freq_table['Count'].sum())
+b=test_freq_table.set_index('Car_Use')
+print("-"*50)
+print("Question 1.b")
+print("-"*50)
+print(b)
 
 #1.cProbability train
-a=train_freq_table.set_index('Car_Use')
-b=test_freq_table.set_index('Car_Use')
 prob_train=a.loc[['Commercial'],['Count']]/(a.loc[['Commercial'],['Count']]+b.loc[['Commercial'],['Count']])
+print("-"*50)
+print("Question 1.c")
+print("-"*50)
+print(prob_train)
 
 #1.d Probability test
 prob_test = b.loc[['Private'],['Count']]/(b.loc[['Private'],['Count']]+a.loc[['Private'],['Count']])
+print("-"*50)
+print("Question 1.d")
+print("-"*50)
+print(prob_test)
 
-print('*'*50)
-data2 = x_train
-data2['CAR_USE'] = y_train['CAR_USE']
+data2 = x_train.iloc[:,:]
+data2['CAR_USE'] = y_train.loc[:,'CAR_USE']
 #Contingency Table
 cont_tab=pd.crosstab(data2['CAR_TYPE'],data2['CAR_USE'])
 cont_tab['Total'] = cont_tab['Commercial'] + cont_tab['Private']
 cont_tab = cont_tab.append(cont_tab.agg(['sum']))
 #entropy calcualtion
-
 c=cont_tab.loc[['sum'],['Commercial']]
 t=cont_tab.loc[['sum'],['Total']]
 p=cont_tab.loc[['sum'],['Private']]
 #2.a Entropy of root node
 ent = scipy.stats.entropy([c.Commercial/t.Total,p.Private/t.Total], base=2)
-
+print("-"*50)
+print("Question 2.a")
+print("-"*50)
+print(ent)
 #2.b
 index = ['Commercial','Private','Total']
 def red_entropy(c,p):
@@ -124,10 +142,18 @@ for l in range(10):
 
 #2.b split criterion of first layer is maximum reduction in entropy
 sc = df.loc[df['Red_entropy'] == float(df.loc[:,'Red_entropy'].max()),['Commercial','Private']]
-
+print("-"*50)
+print("Question 2.b")
+print("-"*50)
+print("Predictor Name: ",data.columns[0])
+print("Left Child: ",list(sc['Commercial']))
+print("Right Child: ",list(sc['Private']))
 #2.c entropy of split of first layer
-se = float(df.loc[:,'Red_entropy'].max())
-
+se = red_entropy(df.iloc[28,0],df.iloc[28,1])[2]
+print("-"*50)
+print("Question 2.c")
+print("-"*50)
+print("Entropy of split of First Layer: ",se)
 #child node 1
 com_split_1 = data2[data2['CAR_TYPE'].isin(['Panel Truck', 'Pickup','Van'])].reset_index().drop(['index'],axis=1)
 #child node 2
@@ -312,20 +338,19 @@ l2_counts=pri_split_4['CAR_USE'].value_counts()
 l3_counts=com_split_5['CAR_USE'].value_counts()
 l4_counts=pri_split_6['CAR_USE'].value_counts()
 
-leaf_node_1 = {'Decision Rule':{'Occupation':list(c1_c['Commercial']),'Car_Type':list(sc['Commercial'])},'Commercial':l1_counts['Commercial'],'Private':l1_counts['Private']}
-leaf_node_2 = {'Decision Rule':{'Occupation':list(c1_c['Private']),'Car_Type':list(sc['Commercial'])},'Commercial':l2_counts['Commercial'],'Private':l2_counts['Private']}
-leaf_node_3 = {'Decision Rule':{'Education':list(c2_c['Commercial']),'Car_Type':list(sc['Private'])},'Commercial':l3_counts['Commercial'],'Private':l3_counts['Private']}
-leaf_node_4 = {'Decision Rule':{'Education':list(c2_c['Private']),'Car_Type':list(sc['Private'])},'Commercial':l4_counts['Commercial'],'Private':l4_counts['Private']}
+leaf_node_1 = {'Occupation':list(c1_c['Commercial']),'Car_Type':list(sc['Commercial']),'Commercial':l1_counts['Commercial'],'Private':l1_counts['Private']}
+leaf_node_2 = {'Occupation':list(c1_c['Private']),'Car_Type':list(sc['Commercial']),'Commercial':l2_counts['Commercial'],'Private':l2_counts['Private']}
+leaf_node_3 = {'Education':list(c2_c['Commercial']),'Car_Type':list(sc['Private']),'Commercial':l3_counts['Commercial'],'Private':l3_counts['Private']}
+leaf_node_4 = {'Education':list(c2_c['Private']),'Car_Type':list(sc['Private']),'Commercial':l4_counts['Commercial'],'Private':l4_counts['Private']}
 
-#
-df_l1 = pd.DataFrame(leaf_node_1)
-df_l2 = pd.DataFrame(leaf_node_2)
-df_l3 = pd.DataFrame(leaf_node_3)
-df_l4 = pd.DataFrame(leaf_node_4)
+d = pd.DataFrame(columns=['Entropy','No of Observations','% of Commercial','Predicted Class'])
 
-des_rule = []
+entropy = []
 
-
+entropy.append(list(ent_c3))
+entropy.append(list(ent_c4))
+entropy.append(list(ent_c5))
+entropy.append(list(ent_c6))
 
 n_obs = []
 
@@ -348,28 +373,228 @@ for i in range(len(com_obs)):
         pred_class.append('Commercial')
     else:
         pred_class.append('Private')
-        
+
+com_counts = []
+
+com_counts.append(l1_counts['Commercial'])
+com_counts.append(l2_counts['Commercial'])
+com_counts.append(l3_counts['Commercial'])
+com_counts.append(l4_counts['Commercial'])
+
+pri_counts = []
+
+pri_counts.append(l1_counts['Private'])
+pri_counts.append(l2_counts['Private'])
+pri_counts.append(l3_counts['Private'])
+pri_counts.append(l4_counts['Private'])
+
+
+index = ['Leaf Node 1','Leaf Node 2','Leaf Node 3','Leaf Node 4']
+
+d['Index'] = index
+d['Entropy'] = entropy
+d['No of Observations'] = n_obs
+d['% of Commercial'] = com_obs
+d['Predicted Class'] = pred_class
+d['Commercial'] = com_counts
+d['Private'] = pri_counts
+d.set_index('Index')
+
+print("-"*50)
+print("Question 2.e")
+print("-"*50)
+print(d)
+
 com_split_3['Predicted_Class'] = pred_class[0]
 pri_split_4['Predicted_class'] = pred_class[1]
 com_split_5['Predicted_Class'] = pred_class[2]
 pri_split_6['Predicted_Class'] = pred_class[3]
 
-
-pd.DataFrame([[n_obs,com_obs,pred_class]],columns=['Number of Observations','Commercial','Predicted Class'])
-
-
-from sklearn.metrics import confusion_matrix
-confusion_matrix = confusion_matrix(com_split_3['CAR_USE'],com_split_3['Predicted_Class'])
-
-
+#2f
 def predict_cat(data):
-    if data['CAR_TYPE'] in list(sc['Commercial']):
-        return 0
+    if data['CAR_TYPE'] in ('Panel Truck', 'Pickup', 'Van'):
+        if data['OCCUPATION'] in ('Doctor','Lawyer'):
+            return [0.84,0.16]
+        else:
+            return [0.64,0.46]
+    else:
+        if data['EDUCATION'] in ('High School','Bachelors'):
+            return [0,1]
+        else:
+            return [0.24,0.76]
     
+def decision_tree(data):
+    out_data = np.ndarray(shape=(len(data), 2), dtype=float)
+    count = 0
+    for index, row in data.iterrows():
+        probability = predict_cat(data=row)
+        out_data[count] = probability
+        count += 1
+    return out_data
+
+pred_prob_train = decision_tree(data=x_train)
+pred_prob_train = pred_prob_train[:, 0]
+pred_prob_train = list(pred_prob_train)
+
+thres = x_train['CAR_USE'].value_counts()['Commercial']/len(x_train)
+
+y_train['Pred_prob'] = pred_prob_train
+
+pred_train = []
+for i in range(len(y_train)):
+    if y_train.iloc[i,1] > thres:
+        pred_train.append('Commercial')
+    else:
+        pred_train.append('Private')
+
+y_train['Predicted'] = pred_train
+        
+mis_class_train = []
+
+for i in range(len(y_train)):
+    if y_train.iloc[i,0] == y_train.iloc[i,2]:
+        mis_class_train.append(0)
+    else:
+        mis_class_train.append(1)
+
+y_train['miss Classified'] = mis_class_train
 
 
-if data['CAR_TYPE'] in sc['Commercial'].item():
-    print('in')
+FalsePositive,TruePositive, Threshold = metrics.roc_curve(y_train['CAR_USE'],y_train['Pred_prob'], pos_label='Commercial')
+
+cutoff = np.where(Threshold > 1.0, np.nan, Threshold)
+plt.plot(cutoff, TruePositive, marker = 'o', label = 'True Positive', color = 'blue', linestyle = 'solid')
+plt.plot(cutoff, FalsePositive, marker = 'o',label = 'False Positive',color = 'red', linestyle = 'solid')
+plt.grid(True)
+plt.xlabel("Probability Threshold")
+plt.ylabel("Positive Rate")
+plt.legend(loc = 'upper right', shadow = True)
+print("-"*50)
+print("Question 2.f")
+print("-"*50)
+print("KS Statistic: 0.47")
+print("event probability cutoff value 0.62")
+plt.show()
+
+
+#KS Statistic 0.65-0.18 = 0.47 
+#event probability cutoff value 0.62
+
+eve_prob_cutoff = 0.65
+
+#Question 3
+pred_prob = decision_tree(data=x_test)
+pred_prob = pred_prob[:, 0]
+pred_prob = list(pred_prob)
+
+y_test['Pred_prob'] = pred_prob
+
+pred = []
+for i in range(len(y_test)):
+    if y_test.iloc[i,1] > thres:
+        pred.append('Commercial')
+    else:
+        pred.append('Private')
+
+y_test['Predicted'] = pred
+        
+mis_class = []
+
+for i in range(len(y_test)):
+    if y_test.iloc[i,0] == y_test.iloc[i,2]:
+        mis_class.append(0)
+    else:
+        mis_class.append(1)
+
+y_test['miss Classified'] = mis_class
+#3.a
+#metrics.confusion_matrix(y_test, y_pred_class)
+accuracy = metrics.accuracy_score(y_test['CAR_USE'], y_test['Predicted'])
+missclass = 1-accuracy
+print("-"*50)
+print("Question 3.a")
+print("-"*50)
+print("MissClassification Rate: ",missclass)
+
+#3.b
+pred_KS = []
+for i in range(len(y_test)):
+    if y_test.iloc[i,1] > eve_prob_cutoff:
+        pred_KS.append('Commercial')
+    else:
+        pred_KS.append('Private')
+y_test.loc[:,'KS'] = pred_KS
+accuracy_KS = metrics.accuracy_score(y_test['CAR_USE'], pred_KS)
+missclass_KS = 1-accuracy_KS
+print("-"*50)
+print("Question 3.b")
+print("-"*50)
+print("MissClassification Rate with Kolmogorov-Smirnov event probability cutoff value as Threshold: ",missclass_KS)
+
+#3.c
+y_comm = 1.0 * np.isin(y_test['CAR_USE'], ['Commercial'])
+MSE = metrics.mean_squared_error(y_comm, y_test['Pred_prob'])
+RMSE = np.sqrt(MSE)
+print("-"*50)
+print("Question 3.c")
+print("-"*50)
+print("Root Mean Squared Error for Test Partition: ",RMSE)
+
+#Grouping Probabilities as commercial and private
+com_prob = []
+pri_prob = []
+for i in range(len(y_test)):
+    if(y_test.iloc[i,0]=='Commercial'):
+        com_prob.append(y_test.iloc[i,1])
+    else:
+        pri_prob.append(y_test.iloc[i,1])
+#Counting concordant, discordant and tie pairs
+con = 0
+dis = 0
+tie = 0
+for i in com_prob:
+    for j in pri_prob:
+        if(i>j):
+            con+=1
+        elif(i<j):
+            dis+=1
+        else:
+            tie+=1
+#3.d
+print("-"*50)
+print("Question 3.d")
+print("-"*50)
+AUC = 0.5 + 0.5*(con-dis)/(con+dis+tie)
+print("Area Under Curve in Test Partition: ",AUC)
+#3.e
+print("-"*50)
+print("Question 3.e")
+print("-"*50)
+GINI = (con-dis)/(con+dis+tie)
+print("GINI Coefficient in the Test Partition: ",GINI) 
+#3.f 
+print("-"*50)
+print("Question 3.f")
+print("-"*50)        
+GKG = (con-dis)/(con+dis)
+print("Goodman-Kruskal Gamma statistic in the Test partition: ",GKG)
+#3.g
+OneMinusSpecificity = np.append([0], FalsePositive)
+Sensitivity = np.append([0], TruePositive)
+OneMinusSpecificity = np.append(OneMinusSpecificity, [1])
+Sensitivity = np.append(Sensitivity, [1])
+#ROC curve
+plt.figure(figsize=(6,6))
+plt.plot(OneMinusSpecificity, Sensitivity, marker = 'o',color = 'blue', linestyle = 'solid', linewidth = 2, markersize = 6)
+plt.plot([0, 1], [0, 1], color = 'red', linestyle = ':')
+plt.grid(True)
+plt.xlabel("1 - Specificity (False Positive Rate)")
+plt.ylabel("Sensitivity (True Positive Rate)")
+plt.axis("equal")
+print("-"*50)
+print("Question 3.g")
+print("-"*50) 
+plt.show()
 
 
 
