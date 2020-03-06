@@ -13,11 +13,11 @@ import seaborn as sns
 from numpy import linalg as LA
 from sklearn.neighbors import KNeighborsClassifier as kNN
 
-file = "C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Learning\\Assignment 1\\NormalSample.csv"
-file2 = "C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Learning\\Assignment 1\\Fraud.csv"
+file = "NormalSample.csv"
+file2 = "Fraud.csv"
 #CSV to DataFrame
-NormalSample_df = pd.read_csv(file,sep=',')
-Fraud_df = pd.read_csv(file2,sep=',')
+NormalSample_df = pd.read_csv(file)
+Fraud_df = pd.read_csv(file2)
 x=NormalSample_df['x']
 print(x)
 #Total number of elements in the column 'x'
