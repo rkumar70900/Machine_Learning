@@ -18,18 +18,23 @@ import sklearn.metrics as metrics
 claim_history = pd.read_csv("C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Learning\\Machine_Learning\\Assignment_3\\claim_history.csv")
 
 data = claim_history[['CAR_TYPE','OCCUPATION','EDUCATION','CAR_USE']]
+data['EDUCATION'] = data['EDUCATION'].map( {'Below High School': 0, 'High School': 1, 'Bachelors': 2, 'Masters': 3, 'Doctors': 4})
 
 x = data[['CAR_TYPE','OCCUPATION','EDUCATION']].dropna()
 y = data[['CAR_USE']].dropna()
 
 x_train, x_test, y_train, y_test = train_test_split(x,y,test_size = 0.25,train_size = 0.75,random_state = 60616,stratify=y)
 
-    
+ 
+   
 my_tab = pd.crosstab(index=y_train['CAR_USE'],columns='count')
 my_tab.columns=['Count']
 my_tab.index = ['Private','Commercial']
 my_tab['Proportion'] = my_tab['Count']/my_tab['Count'].sum()
 #my_tab['count'] = y_train['CAR_USE'].value_counts().index
+
+
+
 
 #1.aTrain data frequency counts and proportion
 train_count = list(y_train['CAR_USE'].value_counts())
@@ -155,7 +160,7 @@ print("Predictor Name: ",data.columns[0])
 print("Left Child: ",list(sc['Commercial']))
 print("Right Child: ",list(sc['Private']))
 #2.c entropy of split of first layer
-se = red_entropy(df.iloc[72,0],df.iloc[72,1],cont_tab)[2]
+se = red_entropy(df.iloc[28,0],df.iloc[28,1],cont_tab)[2]
 print("-"*50)
 print("Question 2.c")
 print("-"*50)
@@ -175,8 +180,33 @@ p1=cont_tab2.loc[['sum'],['Private']]
 
 ent_c1 = scipy.stats.entropy([c1.Commercial/t1.Total,p1.Private/t1.Total], base=2)
 
+def red_entropy_ord(c,p,cont):
+    co = []
+    pr = []
+    for x in c:
+        co.append(x)
+    for y in p:
+        pr.append(y)
+    com = cont.loc[co].sum()
+    pri = cont.loc[pr].sum() 
+    cont_tab1 = pd.DataFrame(list(zip(com,pri)),columns=['com','pri'])
+    cont_tab1.index = [x for x in index]
+    cont_tab1 = cont_tab1.T
+    cont_tab1 = cont_tab1.append(cont_tab1.agg(['sum']))
+    a = cont_tab1.loc['com',index[0]]
+    b = cont_tab1.loc['com',index[1]]
+    d = cont_tab1.loc['com',index[2]]
+    e = cont_tab1.loc['pri',index[0]]
+    f = cont_tab1.loc['pri',index[1]]
+    g = cont_tab1.loc['pri',index[2]]
+    st = cont_tab1.loc['sum',index[2]]
+    ent1 = scipy.stats.entropy([a/d,b/d],base=2)
+    ent2 = scipy.stats.entropy([e/g,f/g],base=2)
+    split_ent = ((d/st)*ent1+(g/st)*ent2)
+    values = [ent1,ent2,split_ent]
+    return values
 
-s1_c1 = ['Below High School' , 'High School' , 'Bachelors' , 'Masters' , 'Doctors']
+s1_c1 = [0,1,2,3,4]
 
 c1_list = []
 p1_list = []
@@ -188,11 +218,11 @@ for i in range(1,3,1):
 df2 = pd.DataFrame(columns=['Commercial','Private','Red_entropy'])
 
 for x in range(5):
-    re_14 = ent_c1-red_entropy(c1_list[0][x],p1_list[0][-(x+1)],cont_tab2)[2]
+    re_14 = ent_c1-red_entropy_ord(c1_list[0][x],p1_list[0][-(x+1)],cont_tab2)[2]
     df2 = df2.append({'Commercial':c1_list[0][x],'Private':p1_list[0][-(x+1)],'Red_entropy':re_14},ignore_index=True)
 
 for y in range(10):
-    re_23 = ent_c1-red_entropy(c1_list[1][y],p1_list[1][-(y+1)],cont_tab2)[2]
+    re_23 = ent_c1-red_entropy_ord(c1_list[1][y],p1_list[1][-(y+1)],cont_tab2)[2]
     df2 = df2.append({'Commercial':c1_list[1][y],'Private':p1_list[1][-(y+1)],'Red_entropy':re_23},ignore_index=True)
     
 # split criterion of child node 1 maximum reduction in entropy
@@ -202,7 +232,7 @@ c1_c = df2.loc[df2['Red_entropy'] == float(df2.loc[:,'Red_entropy'].max()),['Com
 c1_e = float(df2.loc[:,'Red_entropy'].max())
 
 #leaf node 1
-com_split_3 = com_split_1[com_split_1['EDUCATION'].isin(['Below High School'])].reset_index().drop(['index'],axis=1)
+com_split_3 = com_split_1[com_split_1['EDUCATION'].isin([0])].reset_index().drop(['index'],axis=1)
 
 #entropy of leaf node 1
 cont_tab4=pd.crosstab(com_split_3['EDUCATION'],com_split_3['CAR_USE'])
@@ -214,7 +244,7 @@ p3=cont_tab4.loc[['sum'],['Private']]
 ent_c3 = scipy.stats.entropy([c3.Commercial/t3.Total,p3.Private/t3.Total], base=2)
 
 #leaf node 2
-pri_split_4 = com_split_1[com_split_1['EDUCATION'].isin([ 'High School' , 'Bachelors' , 'Masters' , 'Doctors'])].reset_index().drop(['index'],axis=1)
+pri_split_4 = com_split_1[com_split_1['EDUCATION'].isin([1,2,3,4])].reset_index().drop(['index'],axis=1)
 #entropy of leaf node 2
 cont_tab5=pd.crosstab(pri_split_4['EDUCATION'],pri_split_4['CAR_USE'])
 cont_tab5['Total'] = cont_tab5['Commercial'] + cont_tab5['Private']
@@ -344,9 +374,15 @@ leaf_node_2 = {'Education':list(c1_c['Private']),'Occupation':list(sc['Commercia
 leaf_node_3 = {'Car_Type':list(c2_c['Commercial']),'Occupation':list(sc['Private'])}
 leaf_node_4 = {'Car_Type':list(c2_c['Private']),'Occupation':list(sc['Private'])}
 
+print("-"*50)
+print("Question 2.d")
+print("-"*50)
+print("Number of Leaves: 4")
+
 
 
 index = ['Leaf Node 1','Leaf Node 2','Leaf Node 3','Leaf Node 4']
+
 
 d['Index'] = index
 d['Entropy'] = entropy
@@ -378,7 +414,7 @@ pri_split_6['Predicted_Class'] = pred_class[3]
 #2f
 def predict_cat(data):
     if data['OCCUPATION'] in ('Blue Collar', 'Student', 'Unknown'):
-        if data['EDUCATION'] in ('Below High School'):
+        if data['EDUCATION'] <=0.5:
             return [0.27,0.73]
         else:
             return [0.84,0.16]
@@ -408,7 +444,7 @@ y_train['Pred_prob'] = pred_prob_train
 
 pred_train = []
 for i in range(len(y_train)):
-    if y_train.iloc[i,1] > 0.534:
+    if y_train.iloc[i,1] > 0.367:
         pred_train.append('Commercial')
     else:
         pred_train.append('Private')
@@ -445,8 +481,15 @@ plt.show()
 
 #KS Statistic 0.65-0.18 = 0.47 
 #event probability cutoff value 0.65
+print("-"*50)
+print("Question 2.f")
+print("-"*50)
+print("From the Graph")
+print("KS Statistic: 0.47")
+print("Commercial Probability cut-off value: 0.65")
 
-eve_prob_cutoff = 0.27
+
+eve_prob_cutoff = 0.65
 
 #Question 3
 pred_prob = decision_tree(data=x_test)
