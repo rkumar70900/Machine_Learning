@@ -15,7 +15,7 @@ import sklearn.metrics as metrics
 
 #from statsmodels.graphics.mosaicplot import mosaic
 
-claim_history = pd.read_csv("C:\\Users\\rkuma\\OneDrive\\Documents\\Courses\\Semester 2\\Machine Learning\\Machine_Learning\\Assignment_3\\claim_history.csv")
+claim_history = pd.read_csv("claim_history.csv")
 
 data = claim_history[['CAR_TYPE','OCCUPATION','EDUCATION','CAR_USE']]
 data['EDUCATION'] = data['EDUCATION'].map( {'Below High School': 0, 'High School': 1, 'Bachelors': 2, 'Masters': 3, 'Doctors': 4})
