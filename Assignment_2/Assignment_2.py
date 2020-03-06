@@ -15,7 +15,6 @@ from sklearn.neighbors import NearestNeighbors as NN
 import math
 import numpy.linalg as linalg
 import sklearn.neighbors as neighbors
-import scipy
 from mlxtend.preprocessing import TransactionEncoder
 from mlxtend.frequent_patterns import apriori
 from mlxtend.frequent_patterns import association_rules
