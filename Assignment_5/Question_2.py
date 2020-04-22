@@ -57,7 +57,7 @@ xTrain = spiral[['radius','theta']]
 yTrain = spiral['SpectralCluster']
 colors = ['red', 'blue']
 for i in range(2):
-    i_data = spiral[spiral['prediction'] == i]
+    i_data = spiral[spiral['SpectralCluster'] == i]
     plt.scatter(x = i_data['radius'],y=i_data['theta'],c = colors[i], label = i, s = 25,linestyle='-')
 plt.xlabel('radius')
 plt.ylabel('theta')
