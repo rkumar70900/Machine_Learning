@@ -19,7 +19,7 @@ spiral['prediction'] = pred_class
 print('question 2.a')
 print('Intercept = ', thisFit.intercept_)
 print('Coefficients = ', thisFit.coef_)
-print(f'The Hyperplane is {thisFit.coef_[0][0]:.7f}x1 + {thisFit.coef_[0][1]:.7f}x2 = {thisFit.intercept_[0]:.7f}')
+print(f'The Hyperplane is {thisFit.intercept_[0]:.7f} + {thisFit.coef_[0][0]:.7f}x1 + {thisFit.coef_[0][1]:.7f}x2 = 0')
 #question 2.b
 print('question 2.b')
 accuracy = metrics.accuracy_score(yTrain, pred_class)
@@ -43,8 +43,8 @@ plt.plot(xx, yy,'k:')
 plt.grid(True)
 plt.legend(title='Group')
 plt.show()
-#question 3.d
-print('question 3.d')
+#question 2.d
+print('question 2.d')
 spiral['radius'] = np.sqrt(spiral['x']**2 + spiral['y']**2)
 spiral['theta'] = np.arctan2(spiral['y'], spiral['x'])
 def customArcTan (z):
@@ -66,7 +66,7 @@ plt.grid(True)
 plt.legend(title='Group')
 plt.show()
 
-print('question 3.e')
+print('question 2.e')
 group = np.zeros(spiral.shape[0])
 
 # create four group by using the location of the coordinates
@@ -101,8 +101,8 @@ plt.grid(True)
 plt.legend(title='Group')
 plt.show()
 
-#question 3.f
-print('question 3.f')
+#question 2.f
+print('question 2.f')
 def threehyper(i,j):
     spiral_i = spiral[spiral['group']==i]
     spiral_j = spiral[spiral['group']==j]
@@ -120,7 +120,7 @@ def threehyper(i,j):
     plt.grid(True)
     Intercept = thisFit.intercept_
     Coefficient = thisFit.coef_
-    print(f'The Hyperplane of SVM {i}: Group{i} vs Group{j} is {Coefficient[0][0]:.7f}x1 + {Coefficient[0][1]:.7f}x2 = {Intercept[0]:.7f}')
+    print(f'The Hyperplane of SVM {i}: Group{i} vs Group{j} is {Intercept[0]:.7f} + {Coefficient[0][0]:.7f}x1 + {Coefficient[0][1]:.7f}x2 = 0')
     return Intercept,Coefficient,xx,yy
 
 i_01,c_01,x_01,y_01 = threehyper(0,1)
@@ -131,7 +131,7 @@ print("SVM 0: Group 0 versus Group 1 \nIntercept {}\nCoefficients {}".format(i_0
 print("SVM 1: Group 1 versus Group 2 \nIntercept {}\nCoefficients {}".format(i_12,c_12))
 print("SVM 2: Group 2 versus Group 3 \nIntercept {}\nCoefficients {}".format(i_23,c_23))
 
-print('question 3.g')
+print('question 2.g')
 colors = ['red', 'blue','green','black']
 for i in range(4):
     i_data = spiral[spiral['group'] == i]
@@ -144,7 +144,7 @@ plt.legend(title='Group')
 plt.show()
 
 
-print('question 3.h')
+print('question 2.h')
 h0_xx = x_01 * np.cos(y_01)
 h0_yy = x_01 * np.sin(y_01)
 h1_xx = x_12 * np.cos(y_12)
