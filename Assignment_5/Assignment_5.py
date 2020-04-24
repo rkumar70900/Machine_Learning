@@ -49,7 +49,6 @@ def Build_NN_Toy (nLayer, nHiddenNeuron,act_func):
 
 print('question 1.b')
 result = pd.DataFrame(columns = ['Activation Function','nLayer', 'nHiddenNeuron','Iterations','Loss', 'MissClassification Rate'])
-#result2 = pd.DataFrame(columns = ['Activation Function','nLayer', 'nHiddenNeuron','Iterations','Loss', 'MissClassification Rate'])
 act_function = ['relu','identity','logistic','tanh']
 
 for k in act_function:
@@ -65,7 +64,6 @@ for k in act_function:
                 hid = j
                 it = iter
                 act_func = k
-            #result2 = result2.append(pd.DataFrame([[act_func,i,j,iter,Loss,missclass]],columns=['Activation Function','nLayer', 'nHiddenNeuron','Iterations','Loss', 'MissClassification Rate']))
     result = result.append(pd.DataFrame([[act_func,layer,hid,it,min_loss,min_class]],
                                        columns =['Activation Function','nLayer', 'nHiddenNeuron','Iterations','Loss', 'MissClassification Rate']))
 
